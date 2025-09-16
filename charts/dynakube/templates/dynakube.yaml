@@ -1,0 +1,15 @@
+apiVersion: dynatrace.com/{{ .Values.apiVersion }}
+kind: DynaKube
+metadata:
+  name: {{ include "dynakube.fullname" . }}
+  labels:
+    {{- include "dynakube.labels" . | nindent 4 }}
+spec:
+  apiUrl: {{ .Values.apiUrl | required "missing apiUrl" }}
+  tokens: {{ .Values.tokens | default (include "dynakube.fullname" .) }}
+{{- with .Values.oneAgent }}
+  oneAgent: {{ . | toYaml | nindent 2 }}
+{{- end }}
+{{- with .Values.activeGate }}
+  activeGate: {{ . | toYaml | nindent 2 }}
+{{- end }}
