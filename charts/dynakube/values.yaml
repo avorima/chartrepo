@@ -6,3 +6,5 @@ apiUrl: ""
 tokens: ""
 oneAgent: null
 activeGate: null
+metadataEnrichment: null
+templates: null

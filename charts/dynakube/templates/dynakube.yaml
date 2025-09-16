@@ -13,3 +13,9 @@ spec:
 {{- with .Values.activeGate }}
   activeGate: {{ . | toYaml | nindent 2 }}
 {{- end }}
+{{- with .Values.metadataEnrichment }}
+  metadataEnrichment: {{ . | toYaml | nindent 2 }}
+{{- end }}
+{{- with .Values.templates }}
+  templates: {{ . | toYaml | nindent 2 }}
+{{- end }}
