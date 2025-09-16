@@ -8,14 +8,14 @@ spec:
   apiUrl: {{ .Values.apiUrl | required "missing apiUrl" }}
   tokens: {{ .Values.tokens | default (include "dynakube.fullname" .) }}
 {{- with .Values.oneAgent }}
-  oneAgent: {{ . | toYaml | nindent 2 }}
+  oneAgent: {{ . | toYaml | nindent 4 }}
 {{- end }}
 {{- with .Values.activeGate }}
-  activeGate: {{ . | toYaml | nindent 2 }}
+  activeGate: {{ . | toYaml | nindent 4 }}
 {{- end }}
 {{- with .Values.metadataEnrichment }}
-  metadataEnrichment: {{ . | toYaml | nindent 2 }}
+  metadataEnrichment: {{ . | toYaml | nindent 4 }}
 {{- end }}
 {{- with .Values.templates }}
-  templates: {{ . | toYaml | nindent 2 }}
+  templates: {{ . | toYaml | nindent 4 }}
 {{- end }}
