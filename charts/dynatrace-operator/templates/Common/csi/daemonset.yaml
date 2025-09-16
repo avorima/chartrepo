@@ -137,8 +137,6 @@ spec:
         - mountPath: /data
           name: data-dir
           mountPropagation: Bidirectional
-        - name: tmp-dir
-          mountPath: /tmp
       - name: provisioner
         image: {{ include "dynatrace-operator.image" . }}
         imagePullPolicy: Always
@@ -169,8 +167,6 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: spec.nodeName
-          - name: TOLERATIONS
-            value: '{{ .Values.csidriver.tolerations | toJson }}'
           - name: CSI_DATA_DIR
             value: {{ include "dynatrace-operator.CSIDataDir" . }}
           {{- if .Values.csidriver.cleanupPeriod }}
@@ -178,6 +174,7 @@ spec:
             value: "{{ .Values.csidriver.cleanupPeriod}}"
           {{- end }}
           {{ include "dynatrace-operator.modules-json-env" . | nindent 10 }}
+          {{ include "dynatrace-operator.helm-json-env" . | nindent 10 }}
         {{- include "dynatrace-operator.startupProbe" . | nindent 8 }}
         {{- if not .Values.debug }}
         livenessProbe:
@@ -206,8 +203,6 @@ spec:
           - mountPath: /data
             name: data-dir
             mountPropagation: Bidirectional
-          - mountPath: /tmp
-            name: tmp-dir
           - mountPath: {{ include "dynatrace-operator.CSIMountPointDir" . }}
             name: mountpoint-dir # needed for garbage-collection
             readOnly: true
@@ -223,10 +218,15 @@ spec:
         - name: DRIVER_REG_SOCK_PATH
           value: {{ include "dynatrace-operator.CSISocketPath" . }}
         args:
+        {{- if .Values.csidriver.registrar.builtIn }}
+        - csi-node-driver-registrar
+        {{- end }}
         - --csi-address=/csi/csi.sock
         - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)
+        {{- if not .Values.csidriver.registrar.builtIn }}
         command:
         - csi-node-driver-registrar
+        {{- end }}
         resources:
           {{- if .Values.csidriver.registrar.resources }}
           {{- toYaml .Values.csidriver.registrar.resources | nindent 10 }}
@@ -240,19 +240,22 @@ spec:
           name: plugin-dir
         - mountPath: /registration
           name: registration-dir
-        - mountPath: {{ include "dynatrace-operator.CSIPluginDir" . }}
-          name: lockfile-dir
         # Used to make a gRPC request (Probe()) to the driver to check if its running
         # - Needs access to the csi socket, needs to read/write to it, needs root permissions to do so.
       - name: liveness-probe
         image: {{ include "dynatrace-operator.image" . }}
         imagePullPolicy: Always
         args:
+        {{- if .Values.csidriver.livenessprobe.builtIn }}
+        - livenessprobe
+        {{- end }}
         - --csi-address=/csi/csi.sock
         - --health-port=9808
         - --probe-timeout=9s
+        {{- if not .Values.csidriver.livenessprobe.builtIn }}
         command:
         - livenessprobe
+        {{- end }}
         resources:
           {{- if .Values.csidriver.livenessprobe.resources }}
           {{- toYaml .Values.csidriver.livenessprobe.resources | nindent 10 }}
@@ -291,12 +294,6 @@ spec:
         hostPath:
           path: {{ include "dynatrace-operator.CSIMountPointDir" . }}
           type: DirectoryOrCreate
-        # Used by the registrar to create its lockfile
-      - name: lockfile-dir
-        emptyDir: {}
-        # A volume for the driver to write temporary files to
-      - name: tmp-dir
-        emptyDir: {}
       {{- if .Values.customPullSecret }}
       imagePullSecrets:
         - name: {{ .Values.customPullSecret }}
