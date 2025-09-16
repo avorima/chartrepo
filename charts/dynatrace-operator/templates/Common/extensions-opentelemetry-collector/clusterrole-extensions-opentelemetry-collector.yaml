@@ -1,4 +1,4 @@
-{{- if or (eq .Values.rbac.activeGate.create true) (eq .Values.rbac.kspm.create true) }}
+{{- if .Values.rbac.extensions.create }}
 # Copyright 2021 Dynatrace LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,102 +15,64 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: dynatrace-kubernetes-monitoring
+  name: dynatrace-extensions-prometheus
+  namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dynatrace-operator.activegateLabels" . | nindent 4 }}
+    {{- include "dynatrace-operator.extensionsOpenTelemetryCollectorLabels" . | nindent 4 }}
 rules:
   - apiGroups:
       - ""
     resources:
-      - nodes
       - pods
       - namespaces
-      - replicationcontrollers
-      - events
-      - resourcequotas
-      - pods/proxy
-      - nodes/proxy
-      - nodes/metrics
+      - endpoints
       - services
+      - nodes
+      - nodes/metrics
     verbs:
-      - list
-      - watch
       - get
-  - apiGroups:
-      - batch
-    resources:
-      - jobs
-      - cronjobs
-    verbs:
-      - list
       - watch
-      - get
+      - list
   - apiGroups:
       - apps
     resources:
       - deployments
+      - daemonsets
       - replicasets
       - statefulsets
-      - daemonsets
     verbs:
+      - get
       - list
       - watch
-      - get
-  - apiGroups:
-      - apps.openshift.io
-    resources:
-      - deploymentconfigs
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - config.openshift.io
-    resources:
-      - clusterversions
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - dynatrace.com
-    resources:
-      - dynakubes
-    verbs:
-      - list
-      - watch
-      - get
-  - nonResourceURLs:
-      - /metrics
-      - /version
-      - /readyz
-      - /livez
-    verbs:
-      - get
   {{- if (eq (include "dynatrace-operator.openshiftOrOlm" .) "true") }}
   - apiGroups:
       - security.openshift.io
     resourceNames:
       - privileged
-      - nonroot-v2
     resources:
       - securitycontextconstraints
     verbs:
       - use
   {{ end }}
+  - nonResourceURLs:
+      - /metrics
+      - /metrics/cadvisor
+    verbs:
+      - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: dynatrace-kubernetes-monitoring
+  name: dynatrace-extensions-prometheus
+  namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dynatrace-operator.activegateLabels" . | nindent 4 }}
+    {{- include "dynatrace-operator.extensionsOpenTelemetryCollectorLabels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: dynatrace-kubernetes-monitoring
+  name: dynatrace-extensions-prometheus
 subjects:
   - kind: ServiceAccount
-    name: dynatrace-kubernetes-monitoring
+    name: dynatrace-extensions-collector
     namespace: {{ .Release.Namespace }}
 {{ end }}
