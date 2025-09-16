@@ -1,4 +1,4 @@
-{{- if .Values.rbac.oneAgent.create }}
+{{ if eq (include "dynatrace-operator.needAutopilotAllowlisting" .) "true" }}
 # Copyright 2021 Dynatrace LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,16 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: v1
-kind: ServiceAccount
+apiVersion: auto.gke.io/v1
+kind: AllowlistSynchronizer
 metadata:
-  name: dynatrace-dynakube-oneagent
-  namespace: {{ .Release.Namespace }}
-  {{- if .Values.rbac.oneAgent.annotations }}
+  name: dynatrace-operator
   annotations:
-    {{- toYaml .Values.rbac.oneAgent.annotations | nindent 4 }}
-  {{- end }}
-  labels:
-    {{- include "dynatrace-operator.oneagentLabels" . | nindent 4 }}
-automountServiceAccountToken: {{.Values.rbac.logMonitoring.create}}
-{{ end }}
+    "helm.sh/hook": pre-install, post-delete, pre-upgrade, pre-rollback
+spec:
+  allowlistPaths:
+  - Dynatrace/csidriver/{{ .Chart.AppVersion }}/*
+  - Dynatrace/logmonitoring/{{ .Chart.AppVersion }}/*
+  - Dynatrace/csijob/{{ .Chart.AppVersion }}/*
+{{- end -}}

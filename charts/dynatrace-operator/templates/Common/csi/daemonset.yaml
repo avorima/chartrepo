@@ -112,16 +112,14 @@ spec:
           failureThreshold: 5
           httpGet:
             path: /healthz
-            port: healthz
+            port: 9808
             scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          initialDelaySeconds: 15
+          periodSeconds: 15
           successThreshold: 1
-          timeoutSeconds: 4
+          timeoutSeconds: 10
         {{- end }}
         ports:
-        - containerPort: 9808
-          name: healthz
         - containerPort: 8080
           name: metrics
         resources:
@@ -166,13 +164,20 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: metadata.namespace
-          {{- if .Values.csidriver.maxUnmountedVolumeAge }}
-          - name: MAX_UNMOUNTED_VOLUME_AGE
-            value: "{{ .Values.csidriver.maxUnmountedVolumeAge}}"
+          - name: KUBE_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
+          - name: TOLERATIONS
+            value: '{{ .Values.csidriver.tolerations | toJson }}'
+          - name: CSI_DATA_DIR
+            value: {{ include "dynatrace-operator.CSIDataDir" . }}
+          {{- if .Values.csidriver.cleanupPeriod }}
+          - name: CLEANUP_PERIOD
+            value: "{{ .Values.csidriver.cleanupPeriod}}"
           {{- end }}
-        envFrom:
-          - configMapRef:
-              name: install-config
+          {{ include "dynatrace-operator.modules-json-env" . | nindent 10 }}
         {{- include "dynatrace-operator.startupProbe" . | nindent 8 }}
         {{- if not .Values.debug }}
         livenessProbe:
@@ -203,6 +208,9 @@ spec:
             mountPropagation: Bidirectional
           - mountPath: /tmp
             name: tmp-dir
+          - mountPath: {{ include "dynatrace-operator.CSIMountPointDir" . }}
+            name: mountpoint-dir # needed for garbage-collection
+            readOnly: true
 
         # Used to make a gRPC request (GetPluginInfo()) to the driver to get driver name and driver contain
         # - Needs access to the csi socket, needs to read/write to it, needs root permissions to do so.
@@ -242,7 +250,7 @@ spec:
         args:
         - --csi-address=/csi/csi.sock
         - --health-port=9808
-        - --probe-timeout=4s
+        - --probe-timeout=9s
         command:
         - livenessprobe
         resources:
