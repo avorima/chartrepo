@@ -252,6 +252,16 @@ entries:
   hook-demo:
   - apiVersion: v2
     appVersion: 1.29.3
+    created: "2025-11-27T13:42:53.862197234Z"
+    description: A Helm chart for Kubernetes
+    digest: b913fbc926cd2b2df1b70e0b1342216442434fab115448d4fb2ec81db34e1fde
+    name: hook-demo
+    type: application
+    urls:
+    - https://github.com/avorima/chartrepo/releases/download/hook-demo-0.3.0/hook-demo-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
+    appVersion: 1.29.3
     created: "2025-11-27T13:37:05.034046992Z"
     description: A Helm chart for Kubernetes
     digest: 6f199271c955213712c9727e67e4fb6e92a28807e0881d5cad1b17429f05e36a
@@ -270,4 +280,4 @@ entries:
     urls:
     - https://github.com/avorima/chartrepo/releases/download/hook-demo-0.1.0/hook-demo-0.1.0.tgz
     version: 0.1.0
-generated: "2025-11-27T13:37:05.034103818Z"
+generated: "2025-11-27T13:42:53.862248109Z"
