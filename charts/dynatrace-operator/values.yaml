@@ -17,7 +17,7 @@ platform: ""
 
 #image qualifier; OBSOLETE -> use imageref instead!
 # supply either image or imageref; if both supplied, imageref will be disregarded
-image: quay.io/dynatrace/dynatrace-operator:dev.5a18813e
+image: ""
 #image description using tags
 #resulting image will be named <repository>:v<tag>
 imageRef:
@@ -36,6 +36,7 @@ operator:
   labels: {}
   annotations: {}
   apparmor: false
+  hostAvailabilityDetection: true
   securityContext:
     privileged: false
     allowPrivilegeEscalation: false
@@ -238,10 +239,6 @@ rbac:
   extensions:
     create: true
     annotations: {}
-    prometheus:
-      create: true
-    database:
-      create: true
   telemetryIngest:
     create: true
     annotations: {}
