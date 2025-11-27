@@ -60,3 +60,12 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Auto-detect whether or not we need allowlisting
+*/}}
+{{- define "hook-demo.needAutopilotAllowlisting" -}}
+    {{- if .Capabilities.APIVersions.Has "auto.gke.io/v1/AllowlistSynchronizer" }}
+        {{- printf "true" -}}
+    {{- end -}}
+{{- end }}

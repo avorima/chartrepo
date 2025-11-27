@@ -1,3 +1,4 @@
+{{ if eq (include "dynatrace-operator.needAutopilotAllowlisting" .) "true" }}
 apiVersion: auto.gke.io/v1
 kind: AllowlistSynchronizer
 metadata:
@@ -9,3 +10,4 @@ spec:
   - Dynatrace/csidriver/1.7.0/*
   - Dynatrace/logmonitoring/1.7.0/*
   - Dynatrace/csijob/1.7.0/* 
+{{- end -}}
