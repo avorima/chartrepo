@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: managed-by-hook
+  annotations:
+   "helm.sh/hook": pre-install, post-delete, pre-upgrade, pre-rollback
+  labels:
+    {{- include "hook-demo.labels" . | nindent 4 }}
+data:
+  foo: bar
