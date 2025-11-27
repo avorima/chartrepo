@@ -1,4 +1,4 @@
-{{ if eq (include "dynatrace-operator.needAutopilotAllowlisting" .) "true" }}
+{{ if eq (include "hook-demo.needAutopilotAllowlisting" .) "true" }}
 apiVersion: auto.gke.io/v1
 kind: AllowlistSynchronizer
 metadata:
