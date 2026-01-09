@@ -1,5 +1,4 @@
-{{- if and .Values.rbac.extensions.create (eq (include "dynatrace-operator.openshiftOrOlm" .) "true") }}
-# Copyright 2021 Dynatrace LLC
+# Copyright 2026 Dynatrace LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,35 +11,43 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-kind: Role
+
+# For more information why the individual permissions are required see
+# https://github.com/Dynatrace/dynatrace-operator/blob/main/doc/roles/operator-roles.md
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
 metadata:
-  name: dynatrace-extensions-controller
+  name: dynatrace-cleanup-crd
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dynatrace-operator.extensionsControllerLabels" . | nindent 4 }}
+    {{- include "dynatrace-operator.crdCleanupLabels" . | nindent 4 }}
+  annotations:
+    {{- include "dynatrace-operator.helmPreUpgradeHookAnnotations" . | nindent 4 }}
 rules:
   - apiGroups:
-      - security.openshift.io
-    resourceNames:
-      - privileged
+      - dynatrace.com
     resources:
-      - securitycontextconstraints
+      - dynakubes
+      - edgeconnects
     verbs:
-      - use
+      - get
+      - list
+      - watch
+      - update
 ---
-kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
-  name: dynatrace-extensions-controller
+  name: dynatrace-cleanup-crd
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dynatrace-operator.extensionsControllerLabels" . | nindent 4 }}
+    {{- include "dynatrace-operator.crdCleanupLabels" . | nindent 4 }}
+  annotations:
+    {{- include "dynatrace-operator.helmPreUpgradeHookAnnotations" . | nindent 4 }}
 subjects:
   - kind: ServiceAccount
-    name: dynatrace-extensions-controller
+    name: dynatrace-cleanup-crd
 roleRef:
   kind: Role
-  name: dynatrace-extensions-controller
+  name: dynatrace-cleanup-crd
   apiGroup: rbac.authorization.k8s.io
-{{ end }}

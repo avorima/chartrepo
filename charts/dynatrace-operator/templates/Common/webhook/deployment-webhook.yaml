@@ -62,6 +62,7 @@ spec:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
           whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor
           labelSelector:
             matchLabels:
               {{- include "dynatrace-operator.webhookSelectorLabels" . | nindent 14 }}
@@ -78,7 +79,7 @@ spec:
             # OLM mounts the certificates here, so we reuse it for simplicity
             - --certs-dir=/tmp/k8s-webhook-server/serving-certs/
           image: {{ include "dynatrace-operator.image" . }}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -94,6 +95,11 @@ spec:
               value: ":{{ .Values.webhook.ports.healthProbe | default "10080" }}"
             - name: METRICS_BIND_ADDRESS
               value: ":{{ .Values.webhook.ports.metrics | default "8383" }}"
+            {{ include "dynatrace-operator.gomemlimit" .Values.webhook | nindent 12 }}
+            {{- if .Values.debugLogs }}
+            - name: LOG_LEVEL
+              value: "debug"
+            {{- end }}
             {{ include "dynatrace-operator.modules-json-env" . | nindent 12 }}
           readinessProbe:
             httpGet:

@@ -50,8 +50,11 @@ rules:
       - secrets
     resourceNames:
       - dynatrace-bootstrapper-config
+      - dynatrace-bootstrapper-certs
       - dynatrace-dynakube-config
       - dynatrace-metadata-enrichment-endpoint
+      - dynatrace-otlp-exporter-config
+      - dynatrace-otlp-exporter-certs
     verbs:
       - get
       - update
@@ -79,6 +82,7 @@ rules:
       - apiextensions.k8s.io
     resources:
       - customresourcedefinitions
+      - customresourcedefinitions/status
     resourceNames:
       - dynakubes.dynatrace.com
       - edgeconnects.dynatrace.com
