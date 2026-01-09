@@ -32,26 +32,17 @@ rules:
       - ""
     resources:
       - secrets
-      - configmaps
     verbs:
       - get
       - list
       - watch
   - apiGroups:
-      - dynatrace.com
+      - ""
     resources:
-      - dynakubes/finalizers
-    verbs:
-      - update
-  - apiGroups:
-      - batch
-    resources:
-      - jobs
+      - configmaps
     verbs:
       - get
       - list
-      - create
-      - delete
       - watch
   - apiGroups:
       - ""

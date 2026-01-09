@@ -11,9 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# For more information why the individual permissions are required see
-# https://github.com/Dynatrace/dynatrace-operator/blob/main/doc/roles/operator-roles.md
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -32,12 +29,13 @@ rules:
       - list
       - watch
       - update
+      - create
   - apiGroups:
       - dynatrace.com
     resources:
       - dynakubes/finalizers
-      - edgeconnects/finalizers
       - dynakubes/status
+      - edgeconnects/finalizers
       - edgeconnects/status
     verbs:
       - update
@@ -45,7 +43,27 @@ rules:
       - apps
     resources:
       - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete
+  - apiGroups:
+      - apps
+    resources:
       - daemonsets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete
+  - apiGroups:
+      - apps
+    resources:
       - replicasets
       - deployments
     verbs:
@@ -65,8 +83,6 @@ rules:
       - ""
     resources:
       - configmaps
-      - secrets
-      - services
     verbs:
       - get
       - list
@@ -85,11 +101,39 @@ rules:
   - apiGroups:
       - ""
     resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete
+  - apiGroups:
+      - ""
+    resources:
       - events
     verbs:
       - create
       - get
       - list
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - create
+      - update
+      - delete
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods/log
+    verbs:
+      - get
   - apiGroups:
       - networking.istio.io
     resources:

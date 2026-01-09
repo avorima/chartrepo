@@ -1,4 +1,3 @@
-{{- if or (eq .Values.rbac.activeGate.create true) (eq .Values.rbac.kspm.create true) }}
 # Copyright 2021 Dynatrace LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +31,6 @@ rules:
       - nodes/proxy
       - nodes/metrics
       - services
-      - persistentvolumeclaims
-      - persistentvolumes
     verbs:
       - list
       - watch
@@ -78,40 +75,6 @@ rules:
       - dynatrace.com
     resources:
       - dynakubes
-      - edgeconnects
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - apiextensions.k8s.io
-    resources:
-      - customresourcedefinitions
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - networking.k8s.io
-    resources:
-      - ingresses
-      - networkpolicies
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - discovery.k8s.io
-    resources:
-      - endpointslices
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - autoscaling
-    resources:
-      - horizontalpodautoscalers
     verbs:
       - list
       - watch
@@ -149,4 +112,3 @@ subjects:
   - kind: ServiceAccount
     name: dynatrace-kubernetes-monitoring
     namespace: {{ .Release.Namespace }}
-{{ end }}

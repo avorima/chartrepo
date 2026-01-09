@@ -26,7 +26,7 @@ metadata:
       {{- toYaml .Values.webhook.labels | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ and (.Values.webhook.highAvailability) (not .Values.debug) | ternary 2 1 }}
+  replicas: {{ (default false (.Values.webhook).highAvailability) | ternary 2 1 }}
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -62,14 +62,12 @@ spec:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
           whenUnsatisfiable: DoNotSchedule
-          nodeTaintsPolicy: Honor
           labelSelector:
             matchLabels:
               {{- include "dynatrace-operator.webhookSelectorLabels" . | nindent 14 }}
       {{- end }}
       volumes:
-      - emptyDir:
-          sizeLimit: {{ .Values.webhook.volumes.certsDir.sizeLimit }}
+      - emptyDir: {}
         name: certs-dir
       {{- include "dynatrace-operator.nodeAffinity" . | nindent 6 }}
       containers:
@@ -89,17 +87,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            - name: WEBHOOK_PORT
-              value: "{{ .Values.webhook.ports.server | default "8443" }}"
-            - name: HEALTH_PROBE_BIND_ADDRESS
-              value: ":{{ .Values.webhook.ports.healthProbe | default "10080" }}"
-            - name: METRICS_BIND_ADDRESS
-              value: ":{{ .Values.webhook.ports.metrics | default "8383" }}"
-            {{- if .Values.debugLogs }}
-            - name: LOG_LEVEL
-              value: "debug"
-            {{- end }}
-            {{ include "dynatrace-operator.modules-json-env" . | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /readyz
@@ -116,11 +103,11 @@ spec:
             periodSeconds: 10
           ports:
             - name: server-port
-              containerPort: {{ .Values.webhook.ports.server | default 8443 }}
+              containerPort: 8443
             - name: livez
-              containerPort: {{ .Values.webhook.ports.healthProbe | default 10080 }}
+              containerPort: 10080
             - name: metrics
-              containerPort: {{ .Values.webhook.ports.metrics | default 8383 }}
+              containerPort: 8080
           resources:
             requests:
               {{- toYaml (.Values.webhook).requests | nindent 14 }}
@@ -130,7 +117,7 @@ spec:
             - name: certs-dir
               mountPath: /tmp/k8s-webhook-server/serving-certs/
           securityContext:
-          {{- include "webhook.securityContext" . | nindent 12 }}
+          {{- toYaml .Values.webhook.securityContext | nindent 12 }}
       serviceAccountName: dynatrace-webhook
       {{- if (.Values.webhook).hostNetwork }}
       hostNetwork: true

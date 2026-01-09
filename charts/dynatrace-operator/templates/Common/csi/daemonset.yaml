@@ -79,22 +79,9 @@ spec:
       - name: server
         image: {{ include "dynatrace-operator.image" . }}
         imagePullPolicy: Always
-        {{- if .Values.debug }}
-        command:
-          - /usr/local/bin/dlv
-          - --listen=:40000
-          - --headless=true
-          - --api-version=2
-          - --log
-          - exec
-          - --continue
-          - --accept-multiclient
-          - --
-          - /usr/local/bin/dynatrace-operator
-        {{- end }}
         args:
         - csi-server
-        - --endpoint=unix:/csi/csi.sock
+        - --endpoint=unix://csi/csi.sock
         - --node-id=$(KUBE_NODE_NAME)
         env:
         - name: POD_NAMESPACE
@@ -107,27 +94,25 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.nodeName
-        {{- if .Values.debugLogs }}
-        - name: LOG_LEVEL
-          value: "debug"
-        {{- end }}
-        {{- if and (not .Values.debug) .Values.csidriver.server.livenessProbe.enabled }}
         livenessProbe:
-          failureThreshold: {{ .Values.csidriver.server.livenessProbe.failureThreshold }}
+          failureThreshold: 3
           httpGet:
             path: /healthz
-            port: 9808
+            port: healthz
             scheme: HTTP
-          initialDelaySeconds: {{ .Values.csidriver.server.livenessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.csidriver.server.livenessProbe.periodSeconds }}
-          successThreshold: {{ .Values.csidriver.server.livenessProbe.successThreshold }}
-          timeoutSeconds: {{ .Values.csidriver.server.livenessProbe.timeoutSeconds }}
-        {{- end }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
         ports:
+        - containerPort: 9808
+          name: healthz
         - containerPort: 8080
-          name: server-metrics
+          name: metrics
         resources:
-          {{- include "csidriver.server.resources" . | nindent 10 }}
+          {{- if .Values.csidriver.server.resources }}
+          {{- toYaml .Values.csidriver.server.resources | nindent 10 }}
+          {{- end }}
         securityContext:
         {{- toYaml .Values.csidriver.server.securityContext | nindent 10 }}
         terminationMessagePath: /dev/termination-log
@@ -141,22 +126,11 @@ spec:
         - mountPath: /data
           name: data-dir
           mountPropagation: Bidirectional
+        - name: tmp-dir
+          mountPath: /tmp
       - name: provisioner
         image: {{ include "dynatrace-operator.image" . }}
         imagePullPolicy: Always
-        {{- if .Values.debug }}
-        command:
-          - /usr/local/bin/dlv
-          - --listen=:40001
-          - --headless=true
-          - --api-version=2
-          - --log
-          - exec
-          - --continue
-          - --accept-multiclient
-          - --
-          - /usr/local/bin/dynatrace-operator
-        {{- end }}
         args:
           - csi-provisioner
           - --health-probe-bind-address=:10090
@@ -166,25 +140,11 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: metadata.namespace
-          - name: KUBE_NODE_NAME
-            valueFrom:
-              fieldRef:
-                apiVersion: v1
-                fieldPath: spec.nodeName
-          - name: CSI_DATA_DIR
-            value: {{ include "dynatrace-operator.CSIDataDir" . }}
-          {{- if .Values.debugLogs }}
-          - name: LOG_LEVEL
-            value: "debug"
+          {{- if .Values.csidriver.maxUnmountedVolumeAge }}
+          - name: MAX_UNMOUNTED_VOLUME_AGE
+            value: "{{ .Values.csidriver.maxUnmountedVolumeAge}}"
           {{- end }}
-          {{- if .Values.csidriver.cleanupPeriod }}
-          - name: CLEANUP_PERIOD
-            value: "{{ .Values.csidriver.cleanupPeriod}}"
-          {{- end }}
-          {{ include "dynatrace-operator.modules-json-env" . | nindent 10 }}
-          {{ include "dynatrace-operator.helm-json-env" . | nindent 10 }}
         {{- include "dynatrace-operator.startupProbe" . | nindent 8 }}
-        {{- if not .Values.debug }}
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -195,14 +155,15 @@ spec:
           periodSeconds: 5
           successThreshold: 1
           timeoutSeconds: 1
-        {{- end }}
         ports:
           - name: livez
             containerPort: 10090
-          - name: prov-metrics
+          - name: metrics
             containerPort: 8090
         resources:
-          {{- include "csidriver.provisioner.resources" . | nindent 10 }}
+          {{- if .Values.csidriver.provisioner.resources }}
+          {{- toYaml .Values.csidriver.provisioner.resources | nindent 10 }}
+          {{- end }}
         securityContext:
         {{- toYaml .Values.csidriver.provisioner.securityContext | nindent 10 }}
         terminationMessagePath: /dev/termination-log
@@ -211,9 +172,8 @@ spec:
           - mountPath: /data
             name: data-dir
             mountPropagation: Bidirectional
-          - mountPath: {{ include "dynatrace-operator.CSIMountPointDir" . }}
-            name: mountpoint-dir # needed for garbage-collection
-            readOnly: true
+          - mountPath: /tmp
+            name: tmp-dir
 
         # Used to make a gRPC request (GetPluginInfo()) to the driver to get driver name and driver contain
         # - Needs access to the csi socket, needs to read/write to it, needs root permissions to do so.
@@ -226,15 +186,10 @@ spec:
         - name: DRIVER_REG_SOCK_PATH
           value: {{ include "dynatrace-operator.CSISocketPath" . }}
         args:
-        {{- if .Values.csidriver.registrar.builtIn }}
-        - csi-node-driver-registrar
-        {{- end }}
         - --csi-address=/csi/csi.sock
         - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)
-        {{- if not .Values.csidriver.registrar.builtIn }}
         command:
         - csi-node-driver-registrar
-        {{- end }}
         resources:
           {{- if .Values.csidriver.registrar.resources }}
           {{- toYaml .Values.csidriver.registrar.resources | nindent 10 }}
@@ -248,23 +203,18 @@ spec:
           name: plugin-dir
         - mountPath: /registration
           name: registration-dir
+        - mountPath: {{ include "dynatrace-operator.CSIPluginDir" . }}
+          name: lockfile-dir
         # Used to make a gRPC request (Probe()) to the driver to check if its running
         # - Needs access to the csi socket, needs to read/write to it, needs root permissions to do so.
-      {{- if .Values.csidriver.server.livenessProbe.enabled }}
       - name: liveness-probe
         image: {{ include "dynatrace-operator.image" . }}
         imagePullPolicy: Always
         args:
-        {{- if .Values.csidriver.livenessprobe.builtIn }}
-        - livenessprobe
-        {{- end }}
         - --csi-address=/csi/csi.sock
         - --health-port=9808
-        - --probe-timeout=9s
-        {{- if not .Values.csidriver.livenessprobe.builtIn }}
         command:
         - livenessprobe
-        {{- end }}
         resources:
           {{- if .Values.csidriver.livenessprobe.resources }}
           {{- toYaml .Values.csidriver.livenessprobe.resources | nindent 10 }}
@@ -276,7 +226,6 @@ spec:
         volumeMounts:
         - mountPath: /csi
           name: plugin-dir
-      {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -304,6 +253,12 @@ spec:
         hostPath:
           path: {{ include "dynatrace-operator.CSIMountPointDir" . }}
           type: DirectoryOrCreate
+        # Used by the registrar to create its lockfile
+      - name: lockfile-dir
+        emptyDir: {}
+        # A volume for the driver to write temporary files to
+      - name: tmp-dir
+        emptyDir: {}
       {{- if .Values.customPullSecret }}
       imagePullSecrets:
         - name: {{ .Values.customPullSecret }}
