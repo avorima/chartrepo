@@ -33,6 +33,7 @@ operator:
   labels: {}
   annotations: {}
   apparmor: false
+  hostAvailabilityDetection: true
   securityContext:
     privileged: false
     allowPrivilegeEscalation: false
@@ -57,6 +58,10 @@ operator:
 
 webhook:
   hostNetwork: false
+  ports:
+    server: 8443
+    metrics: 8383
+    healthProbe: 10080
   nodeSelector: {}
   tolerations: []
   labels: {}
@@ -89,6 +94,9 @@ webhook:
   mutatingWebhook:
     failurePolicy: Ignore
     timeoutSeconds: 10
+  volumes:
+    certsDir:
+      sizeLimit: 10Mi
 
 csidriver:
   enabled: true
@@ -96,7 +104,7 @@ csidriver:
   kubeletPath: "/var/lib/kubelet"
   existingPriorityClassName: "" # if defined, use this priorityclass instead of creating a new one
   priorityClassValue: "1000000"
-  maxUnmountedVolumeAge: "" # defined in days, must be a plain number
+  cleanupPeriod: "" # defined in the Golang time.Duration format, like "30m" == 30 minutes
   tolerations:
     - effect: NoSchedule
       key: node-role.kubernetes.io/master
@@ -177,6 +185,7 @@ csidriver:
       limits:
         cpu: 20m
         memory: 30Mi
+    builtIn: false
   livenessprobe:
     securityContext:
       runAsUser: 0
@@ -193,4 +202,43 @@ csidriver:
       limits:
         cpu: 20m
         memory: 30Mi
+    builtIn: false
+  job:
+    securityContext:
+      runAsUser: 0
+      privileged: true # Needed for mountPropagation
+      allowPrivilegeEscalation: true # Needed for privileged
+      readOnlyRootFilesystem: true
+      runAsNonRoot: false
+      seLinuxOptions:
+        level: s0
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      requests:
+        cpu: 300m
+        memory: 100Mi
 
+rbac:
+  activeGate:
+    create: true
+    annotations: {}
+  edgeConnect:
+    create: true
+    annotations: {}
+  extensions:
+    create: true
+    annotations: {}
+  telemetryIngest:
+    create: true
+    annotations: {}
+  logMonitoring:
+    create: true
+    annotations: {}
+  oneAgent:
+    create: true
+    annotations: {}
+  kspm:
+    create: true
+    annotations: {}
+  supportability: true

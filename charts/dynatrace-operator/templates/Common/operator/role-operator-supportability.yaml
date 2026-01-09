@@ -1,4 +1,4 @@
-{{ if eq (include "dynatrace-operator.needCSI" .) "true" }}
+{{- if .Values.rbac.supportability }}
 # Copyright 2021 Dynatrace LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,68 +12,40 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
 metadata:
-  name: dynatrace-oneagent-csi-driver
+  name: dynatrace-operator-supportability
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dynatrace-operator.csiLabels" . | nindent 4 }}
+  {{- include "dynatrace-operator.operatorLabels" . | nindent 4 }}
 rules:
   - apiGroups:
-      - dynatrace.com
+      - ""
     resources:
-      - dynakubes
+      - pods/log
     verbs:
       - get
-      - list
-      - watch
   - apiGroups:
       - ""
     resources:
-      - secrets
-      - configmaps
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - dynatrace.com
-    resources:
-      - dynakubes/finalizers
-    verbs:
-      - update
-  - apiGroups:
-      - batch
-    resources:
-      - jobs
-    verbs:
-      - get
-      - list
-      - create
-      - delete
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - events
+      - pods/exec
     verbs:
       - create
-      - patch
+
 ---
-kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
-  name: dynatrace-oneagent-csi-driver
+  name: dynatrace-operator-supportability
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dynatrace-operator.csiLabels" . | nindent 4 }}
+    {{- include "dynatrace-operator.operatorLabels" . | nindent 4 }}
 subjects:
   - kind: ServiceAccount
-    name: dynatrace-oneagent-csi-driver
-    namespace: {{ .Release.Namespace }}
+    name: dynatrace-operator
 roleRef:
   kind: Role
-  name: dynatrace-oneagent-csi-driver
+  name: dynatrace-operator-supportability
   apiGroup: rbac.authorization.k8s.io
-{{- end -}}
+{{ end }}

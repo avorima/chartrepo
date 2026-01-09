@@ -26,7 +26,7 @@ metadata:
       {{- toYaml .Values.webhook.labels | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ (default false (.Values.webhook).highAvailability) | ternary 2 1 }}
+  replicas: {{ and (.Values.webhook.highAvailability) (not .Values.debug) | ternary 2 1 }}
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -67,7 +67,8 @@ spec:
               {{- include "dynatrace-operator.webhookSelectorLabels" . | nindent 14 }}
       {{- end }}
       volumes:
-      - emptyDir: {}
+      - emptyDir:
+          sizeLimit: {{ .Values.webhook.volumes.certsDir.sizeLimit }}
         name: certs-dir
       {{- include "dynatrace-operator.nodeAffinity" . | nindent 6 }}
       containers:
@@ -87,6 +88,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: WEBHOOK_PORT
+              value: "{{ .Values.webhook.ports.server | default "8443" }}"
+            - name: HEALTH_PROBE_BIND_ADDRESS
+              value: ":{{ .Values.webhook.ports.healthProbe | default "10080" }}"
+            - name: METRICS_BIND_ADDRESS
+              value: ":{{ .Values.webhook.ports.metrics | default "8383" }}"
+            {{ include "dynatrace-operator.modules-json-env" . | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /readyz
@@ -103,11 +111,11 @@ spec:
             periodSeconds: 10
           ports:
             - name: server-port
-              containerPort: 8443
+              containerPort: {{ .Values.webhook.ports.server | default 8443 }}
             - name: livez
-              containerPort: 10080
+              containerPort: {{ .Values.webhook.ports.healthProbe | default 10080 }}
             - name: metrics
-              containerPort: 8080
+              containerPort: {{ .Values.webhook.ports.metrics | default 8383 }}
           resources:
             requests:
               {{- toYaml (.Values.webhook).requests | nindent 14 }}
@@ -117,7 +125,7 @@ spec:
             - name: certs-dir
               mountPath: /tmp/k8s-webhook-server/serving-certs/
           securityContext:
-          {{- toYaml .Values.webhook.securityContext | nindent 12 }}
+          {{- include "webhook.securityContext" . | nindent 12 }}
       serviceAccountName: dynatrace-webhook
       {{- if (.Values.webhook).hostNetwork }}
       hostNetwork: true

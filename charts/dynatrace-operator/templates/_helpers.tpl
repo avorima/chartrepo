@@ -41,6 +41,24 @@ Check if default image or imageref is used
 {{- end -}}
 {{- end -}}
 
+{{- define "webhook.securityContext" -}}
+    {{- if not .Values.debug -}}
+        {{- toYaml .Values.webhook.securityContext -}}
+    {{- end -}}
+{{- end -}}
+
+{{- define "csidriver.provisioner.resources" -}}
+    {{- if not .Values.debug -}}
+        {{- toYaml .Values.csidriver.provisioner.resources -}}
+    {{- end -}}
+{{- end -}}
+
+{{- define "csidriver.server.resources" -}}
+    {{- if not .Values.debug -}}
+        {{- toYaml .Values.csidriver.server.resources -}}
+    {{- end -}}
+{{- end -}}
+
 {{- define "dynatrace-operator.startupProbe" -}}
 startupProbe:
   exec:
@@ -50,4 +68,33 @@ startupProbe:
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 1
+{{- end -}}
+
+{{- define "dynatrace-operator.modules-json-env" -}}
+- name: modules.json
+  value: |
+    {
+      "csiDriver": {{ .Values.csidriver.enabled }},
+      "activeGate": {{ .Values.rbac.activeGate.create }},
+      "oneAgent": {{ .Values.rbac.oneAgent.create }},
+      "extensions": {{ .Values.rbac.extensions.create }},
+      "logMonitoring": {{ .Values.rbac.logMonitoring.create }},
+      "edgeConnect": {{ .Values.rbac.edgeConnect.create }},
+      "supportability": {{ .Values.rbac.supportability }},
+      "kspm": {{ .Values.rbac.kspm.create }}
+    }
+{{- end -}}
+
+{{- define "dynatrace-operator.helm-json-env" -}}
+- name: helm.json
+  value: |
+    {
+      "tolerations": {{ .Values.csidriver.tolerations | toJson }},
+      "annotations": {{ .Values.csidriver.annotations | toJson }},
+      "labels": {{ .Values.csidriver.labels | toJson }},
+      "job": {
+        "securityContext": {{ .Values.csidriver.job.securityContext | toJson }},
+        "resources": {{ .Values.csidriver.job.resources | toJson }}
+      }
+    }
 {{- end -}}

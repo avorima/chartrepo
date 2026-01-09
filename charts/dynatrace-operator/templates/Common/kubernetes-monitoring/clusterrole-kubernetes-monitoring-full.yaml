@@ -1,4 +1,4 @@
-{{- if or (eq .Values.rbac.activeGate.create true) (eq .Values.rbac.kspm.create true) }}
+{{- if and ((.Values.preview).fullObjectCoverage).enabled .Values.rbac.activeGate.create }}
 # Copyright 2021 Dynatrace LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,67 +15,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: dynatrace-kubernetes-monitoring
+  name: dynatrace-kubernetes-monitoring-full
   labels:
-    {{- include "dynatrace-operator.activegateLabels" . | nindent 4 }}
+      {{- include "dynatrace-operator.activegateLabels" . | nindent 4 }}
 rules:
-  - apiGroups:
-      - ""
-    resources:
-      - nodes
-      - pods
-      - namespaces
-      - replicationcontrollers
-      - events
-      - resourcequotas
-      - pods/proxy
-      - nodes/proxy
-      - nodes/metrics
-      - services
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - batch
-    resources:
-      - jobs
-      - cronjobs
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - apps
-    resources:
-      - deployments
-      - replicasets
-      - statefulsets
-      - daemonsets
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - apps.openshift.io
-    resources:
-      - deploymentconfigs
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - config.openshift.io
-    resources:
-      - clusterversions
-    verbs:
-      - list
-      - watch
-      - get
-  - apiGroups:
-      - dynatrace.com
-    resources:
-      - dynakubes
+  - apiGroups: [ "*" ]
+    resources: [ "*" ]
     verbs:
       - list
       - watch
@@ -102,13 +47,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: dynatrace-kubernetes-monitoring
+  name: dynatrace-kubernetes-monitoring-full
   labels:
     {{- include "dynatrace-operator.activegateLabels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: dynatrace-kubernetes-monitoring
+  name: dynatrace-kubernetes-monitoring-full
 subjects:
   - kind: ServiceAccount
     name: dynatrace-kubernetes-monitoring
