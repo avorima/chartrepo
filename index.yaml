@@ -216,6 +216,28 @@ entries:
     version: 1.3.0
   - apiVersion: v2
     appVersion: 0.0.0-snapshot
+    created: "2026-01-13T13:03:53.26760168Z"
+    description: The Dynatrace Operator Helm chart for Kubernetes and OpenShift
+    digest: 922c86b62ef0b09cd3506ead426bc378fd7b2c6efc0df3caca7545c9ac27a235
+    home: https://www.dynatrace.com/
+    icon: https://assets.dynatrace.com/global/resources/Signet_Logo_RGB_CP_512x512px.png
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - email: marcell.sevcsik@dynatrace.com
+      name: 0sewa0
+    - email: christoph.muellner@dynatrace.com
+      name: chrismuellner
+    - email: lukas.hinterreiter@dynatrace.com
+      name: luhi-DT
+    name: dynatrace-operator
+    sources:
+    - https://github.com/Dynatrace/dynatrace-operator
+    type: application
+    urls:
+    - https://github.com/avorima/chartrepo/releases/download/dynatrace-operator-0.0.0-snapshot-feature-helm-upgrade-job-2/dynatrace-operator-0.0.0-snapshot-feature-helm-upgrade-job-2.tgz
+    version: 0.0.0-snapshot-feature-helm-upgrade-job-2
+  - apiVersion: v2
+    appVersion: 0.0.0-snapshot
     created: "2026-01-09T13:16:26.099004292Z"
     description: The Dynatrace Operator Helm chart for Kubernetes and OpenShift
     digest: b445eba95718eebd780c035c573e1688f1c2c8e0f7b80b8dbc96bdf26794fb4d
@@ -375,4 +397,4 @@ entries:
     urls:
     - https://github.com/avorima/chartrepo/releases/download/hook-demo-0.1.0/hook-demo-0.1.0.tgz
     version: 0.1.0
-generated: "2026-01-09T13:38:33.270999844Z"
+generated: "2026-01-13T13:03:53.267766887Z"
