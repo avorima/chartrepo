@@ -29,6 +29,8 @@ installCRD: true
 
 # turns on the debug logs for all Operator components (operator/webhook/csi), does not include components that are deployed by the Operator
 debugLogs: false
+# creates a Job to migrate CRD storage during upgrade from old versions to the new one
+crdStorageMigrationJob: false
 
 operator:
   nodeSelector: {}
@@ -37,6 +39,7 @@ operator:
   annotations: {}
   apparmor: false
   hostAvailabilityDetection: true
+  crdStorageMigrationInitManager: true
   securityContext:
     privileged: false
     allowPrivilegeEscalation: false
@@ -124,9 +127,6 @@ csidriver:
     type: RollingUpdate
   csiInit:
     securityContext:
-      capabilities:
-        drop:
-          - ALL
       runAsUser: 0
       privileged: false
       allowPrivilegeEscalation: false
@@ -185,10 +185,6 @@ csidriver:
         memory: 100Mi
   registrar:
     securityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-          - ALL
       runAsUser: 0
       privileged: false
       readOnlyRootFilesystem: true
@@ -204,9 +200,6 @@ csidriver:
         memory: 30Mi
   livenessprobe:
     securityContext:
-      capabilities:
-        drop:
-          - ALL
       runAsUser: 0
       privileged: false
       allowPrivilegeEscalation: false
