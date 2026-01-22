@@ -2,4 +2,4 @@ apiVersion: v2
 name: dynakube
 description: Install DynaKube using helm
 type: application
-version: 0.4.0
+version: 0.5.0

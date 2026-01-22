@@ -19,3 +19,5 @@ spec:
 {{- with .Values.templates }}
   templates: {{ . | toYaml | nindent 4 }}
 {{- end }}
+  enableIstio: {{ .Values.enableIstio }}
+  skipCertCheck: {{ .Values.skipCertCheck }}
