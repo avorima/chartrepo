@@ -5,8 +5,6 @@ kind: PodDisruptionBudget
 metadata:
   name: dynatrace-webhook
   namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "dynatrace-operator.webhookLabels" . | nindent 4 }}
 spec:
   minAvailable: 1
   selector:

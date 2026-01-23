@@ -35,8 +35,6 @@ Check if default image or imageref is used
     	{{- printf "%s:%s" "gcr.io/dynatrace-marketplace-prod/dynatrace-operator" .Chart.AppVersion }}
     {{- else if eq (include "dynatrace-operator.platform" .) "azure-marketplace" -}}
         {{- printf "%s/%s@%s" .Values.global.azure.images.operator.registry .Values.global.azure.images.operator.image .Values.global.azure.images.operator.digest }}
-    {{- else if hasPrefix "0.0.0-nightly-" .Chart.AppVersion -}}
-        {{- printf "%s:%s" "quay.io/dynatrace/dynatrace-operator" (.Chart.AppVersion | replace "0.0.0-" "") }}
 	{{- else -}}
 		{{- printf "%s:v%s" "public.ecr.aws/dynatrace/dynatrace-operator" .Chart.AppVersion }}
 	{{- end -}}
@@ -83,7 +81,6 @@ startupProbe:
       "logMonitoring": {{ .Values.rbac.logMonitoring.create }},
       "edgeConnect": {{ .Values.rbac.edgeConnect.create }},
       "supportability": {{ .Values.rbac.supportability }},
-      "kubernetesMonitoring": {{ .Values.rbac.kubernetesMonitoring.create }},
       "kspm": {{ .Values.rbac.kspm.create }}
     }
 {{- end -}}
@@ -97,15 +94,9 @@ startupProbe:
       "labels": {{ .Values.csidriver.labels | toJson }},
       "job": {
         "securityContext": {{ .Values.csidriver.job.securityContext | toJson }},
-        "resources": {{ .Values.csidriver.job.resources | toJson }},
-        "priorityClassName": {{ include "dynatrace-operator.CSIPriorityClassName" . | toJson }}
+        "resources": {{ .Values.csidriver.job.resources | toJson }}
       }
     }
-{{- end -}}
-
-{{- define "dynatrace-operator.app-version-env" -}}
-- name: APP_VERSION
-  value: {{ .Chart.AppVersion | quote }}
 {{- end -}}
 
 {{- define "dynatrace-operator.helmPreUpgradeHookAnnotations" -}}

@@ -67,8 +67,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            - name: DT_OPERATOR_IMAGE
-              value: {{ include "dynatrace-operator.image" . }}
             - name: DT_HOST_AVAILABILITY_DETECTION
               value: "{{ .Values.operator.hostAvailabilityDetection }}"
             - name: DT_CRD_STORAGE_MIGRATION
@@ -78,8 +76,6 @@ spec:
               value: "debug"
             {{- end }}
             {{ include "dynatrace-operator.modules-json-env" . | nindent 12}}
-            {{ include "dynatrace-operator.gomemlimit" .Values.operator | nindent 12 }}
-            {{ include "dynatrace-operator.app-version-env" . | nindent 12 }}
           ports:
             - containerPort: 10080
               name: livez

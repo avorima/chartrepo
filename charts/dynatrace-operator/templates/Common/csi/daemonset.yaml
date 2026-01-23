@@ -60,9 +60,6 @@ spec:
         imagePullPolicy: Always
         args:
         - csi-init
-        env:
-          {{- include "dynatrace-operator.modules-json-env" . | nindent 10 }}
-          {{- include "dynatrace-operator.gomemlimit" .Values.csidriver.csiInit.resources | nindent 10 }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         resources:
@@ -110,8 +107,6 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.nodeName
-        {{- include "dynatrace-operator.modules-json-env" . | nindent 8 }}
-        {{- include "dynatrace-operator.gomemlimit" .Values.csidriver.server.resources | nindent 8 }}
         {{- if .Values.debugLogs }}
         - name: LOG_LEVEL
           value: "debug"
@@ -186,9 +181,8 @@ spec:
           - name: CLEANUP_PERIOD
             value: "{{ .Values.csidriver.cleanupPeriod}}"
           {{- end }}
-          {{- include "dynatrace-operator.modules-json-env" . | nindent 10 }}
-          {{- include "dynatrace-operator.helm-json-env" . | nindent 10 }}
-          {{- include "dynatrace-operator.gomemlimit" .Values.csidriver.provisioner.resources | nindent 10 }}
+          {{ include "dynatrace-operator.modules-json-env" . | nindent 10 }}
+          {{ include "dynatrace-operator.helm-json-env" . | nindent 10 }}
         {{- include "dynatrace-operator.startupProbe" . | nindent 8 }}
         {{- if not .Values.debug }}
         livenessProbe:
@@ -231,11 +225,16 @@ spec:
         env:
         - name: DRIVER_REG_SOCK_PATH
           value: {{ include "dynatrace-operator.CSISocketPath" . }}
-        {{- include "dynatrace-operator.gomemlimit" .Values.csidriver.registrar.resources | nindent 8 }}
         args:
+        {{- if .Values.csidriver.registrar.builtIn }}
         - csi-node-driver-registrar
+        {{- end }}
         - --csi-address=/csi/csi.sock
         - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)
+        {{- if not .Values.csidriver.registrar.builtIn }}
+        command:
+        - csi-node-driver-registrar
+        {{- end }}
         resources:
           {{- if .Values.csidriver.registrar.resources }}
           {{- toYaml .Values.csidriver.registrar.resources | nindent 10 }}
@@ -256,12 +255,16 @@ spec:
         image: {{ include "dynatrace-operator.image" . }}
         imagePullPolicy: Always
         args:
+        {{- if .Values.csidriver.livenessprobe.builtIn }}
         - livenessprobe
+        {{- end }}
         - --csi-address=/csi/csi.sock
         - --health-port=9808
         - --probe-timeout=9s
-        env:
-          {{- include "dynatrace-operator.gomemlimit" .Values.csidriver.livenessprobe.resources | nindent 8 }}
+        {{- if not .Values.csidriver.livenessprobe.builtIn }}
+        command:
+        - livenessprobe
+        {{- end }}
         resources:
           {{- if .Values.csidriver.livenessprobe.resources }}
           {{- toYaml .Values.csidriver.livenessprobe.resources | nindent 10 }}
