@@ -2,6 +2,15 @@ apiVersion: v1
 entries:
   dynakube:
   - apiVersion: v2
+    created: "2026-01-23T07:23:31.924987688Z"
+    description: Install DynaKube using helm
+    digest: 9d46c7f64ffb82050ce255dcac5f57266ac6b259cbee4ce50a7d588c1f1afb5e
+    name: dynakube
+    type: application
+    urls:
+    - https://github.com/avorima/chartrepo/releases/download/dynakube-0.5.1/dynakube-0.5.1.tgz
+    version: 0.5.1
+  - apiVersion: v2
     created: "2026-01-22T13:52:01.319814467Z"
     description: Install DynaKube using helm
     digest: 13711af6d81071d429908c0e626481f77ec1634f0dcf00ea31f5ec2321d454e5
@@ -494,4 +503,4 @@ entries:
     urls:
     - https://github.com/avorima/chartrepo/releases/download/hook-demo-0.1.0/hook-demo-0.1.0.tgz
     version: 0.1.0
-generated: "2026-01-23T07:20:17.360382846Z"
+generated: "2026-01-23T07:23:31.925093735Z"
