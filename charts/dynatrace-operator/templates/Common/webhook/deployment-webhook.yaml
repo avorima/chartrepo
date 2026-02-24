@@ -26,7 +26,7 @@ metadata:
       {{- toYaml .Values.webhook.labels | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ and (.Values.webhook.highAvailability) (not .Values.debug) | ternary 2 1 }}
+  replicas: {{ include "dynatrace-operator.webhook.replicas" . }}
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -38,7 +38,7 @@ spec:
       annotations:
         dynatrace.com/inject: "false"
         kubectl.kubernetes.io/default-container: webhook
-        {{- if (.Values.webhook).apparmor}}
+        {{- if and (.Values.webhook.apparmor) (eq (include "kubernetes.appArmorSecurityContextSupported" .) "false") }}
         container.apparmor.security.beta.kubernetes.io/webhook: runtime/default
         {{- end }}
         {{- if .Values.webhook.annotations}}
@@ -51,22 +51,7 @@ spec:
         {{- toYaml .Values.webhook.labels | nindent 8 }}
         {{- end }}
     spec:
-      {{- if (.Values.webhook).highAvailability }}
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "topology.kubernetes.io/zone"
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              {{- include "dynatrace-operator.webhookSelectorLabels" . | nindent 14 }}
-        - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: DoNotSchedule
-          nodeTaintsPolicy: Honor
-          labelSelector:
-            matchLabels:
-              {{- include "dynatrace-operator.webhookSelectorLabels" . | nindent 14 }}
-      {{- end }}
+      {{- include "dynatrace-operator.webhook.topologySpreadConstraints" . | nindent 6 }}
       volumes:
       - emptyDir:
           sizeLimit: {{ .Values.webhook.volumes.certsDir.sizeLimit }}
@@ -79,7 +64,9 @@ spec:
             # OLM mounts the certificates here, so we reuse it for simplicity
             - --certs-dir=/tmp/k8s-webhook-server/serving-certs/
           image: {{ include "dynatrace-operator.image" . }}
-          imagePullPolicy: Always
+          {{- with .Values.imagePullPolicy }}
+          imagePullPolicy: {{ . }}
+          {{- end }}
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -95,6 +82,7 @@ spec:
               value: ":{{ .Values.webhook.ports.healthProbe | default "10080" }}"
             - name: METRICS_BIND_ADDRESS
               value: ":{{ .Values.webhook.ports.metrics | default "8383" }}"
+            {{ include "dynatrace-operator.gomemlimit" .Values.webhook | nindent 12 }}
             {{- if .Values.debugLogs }}
             - name: LOG_LEVEL
               value: "debug"
@@ -137,6 +125,9 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.webhook.podSecurityContext | nindent 8 }}
+        {{- if .Values.webhook.apparmor -}}
+          {{ include "kubernetes.defaultAppArmorProfile" . | nindent 8 }}
+        {{- end -}}
       {{- if .Values.customPullSecret }}
       imagePullSecrets:
         - name: {{ .Values.customPullSecret }}

@@ -1,4 +1,4 @@
-{{- if .Values.rbac.telemetryIngest.create }}
+{{- if (and .Values.rbac.extensions.prometheus.create .Values.rbac.extensions.create (eq (include "dynatrace-operator.openshiftOrOlm" .) "true")) }}
 # Copyright 2021 Dynatrace LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,33 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
 metadata:
-  name: dynatrace-telemetry-ingest
+  name: dynatrace-extension-controller-prometheus
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dynatrace-operator.openTelemetryCollectorLabels" . | nindent 4 }}
+    {{- include "dynatrace-operator.extensionControllerLabels" . | nindent 4 }}
 rules:
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-      - namespaces
-      - nodes
-    verbs:
-      - get
-      - watch
-      - list
-  - apiGroups:
-      - apps
-    resources:
-      - replicasets
-    verbs:
-      - get
-      - list
-      - watch
-  {{- if (eq (include "dynatrace-operator.openshiftOrOlm" .) "true") }}
   - apiGroups:
       - security.openshift.io
     resourceNames:
@@ -47,21 +28,19 @@ rules:
       - securitycontextconstraints
     verbs:
       - use
-  {{ end }}
 ---
+kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
 metadata:
-  name: dynatrace-telemetry-ingest
+  name: dynatrace-extension-controller-prometheus
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dynatrace-operator.openTelemetryCollectorLabels" . | nindent 4 }}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: dynatrace-telemetry-ingest
+    {{- include "dynatrace-operator.extensionControllerLabels" . | nindent 4 }}
 subjects:
   - kind: ServiceAccount
-    name: dynatrace-opentelemetry-collector
-    namespace: {{ .Release.Namespace }}
+    name: dynatrace-extension-controller
+roleRef:
+  kind: Role
+  name: dynatrace-extension-controller-prometheus
+  apiGroup: rbac.authorization.k8s.io
 {{ end }}
