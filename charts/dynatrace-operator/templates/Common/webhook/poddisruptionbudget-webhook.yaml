@@ -1,5 +1,6 @@
 {{- if (.Values.webhook).highAvailability }}
-apiVersion: policy/v1
+# v1 version supported since k8s 1.21
+apiVersion: {{ .Capabilities.APIVersions.Has "policy/v1" | ternary "policy/v1" "policy/v1beta1" }}
 kind: PodDisruptionBudget
 metadata:
   name: dynatrace-webhook
@@ -7,5 +8,8 @@ metadata:
   labels:
     {{- include "dynatrace-operator.webhookLabels" . | nindent 4 }}
 spec:
-  {{- toYaml .Values.webhook.podDisruptionBudget | nindent 2 }}
-{{- end }}
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: webhook
+  {{- end }}

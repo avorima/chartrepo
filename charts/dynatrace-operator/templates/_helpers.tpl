@@ -29,17 +29,17 @@ Check if default image or imageref is used
 {{- else -}}
     {{- if (.Values.imageRef).repository -}}
         {{- .Values.imageRef.tag | default (printf "v%s" .Chart.AppVersion) | printf "%s:%s" .Values.imageRef.repository -}}
-    {{- else if hasPrefix "0.0.0-nightly-" .Chart.AppVersion -}}
-        {{- printf "%s:%s" "ghcr.io/dynatrace/dynatrace-operator" (.Chart.AppVersion | replace "0.0.0-" "") }}
     {{- else if eq (include "dynatrace-operator.platform" .) "openshift" -}}
         {{- printf "%s:v%s" "registry.connect.redhat.com/dynatrace/dynatrace-operator" .Chart.AppVersion }}
     {{- else if eq (include "dynatrace-operator.platform" .) "google-marketplace" -}}
     	{{- printf "%s:%s" "gcr.io/dynatrace-marketplace-prod/dynatrace-operator" .Chart.AppVersion }}
     {{- else if eq (include "dynatrace-operator.platform" .) "azure-marketplace" -}}
         {{- printf "%s/%s@%s" .Values.global.azure.images.operator.registry .Values.global.azure.images.operator.image .Values.global.azure.images.operator.digest }}
-    {{- else -}}
-            {{- printf "%s:v%s" "public.ecr.aws/dynatrace/dynatrace-operator" .Chart.AppVersion }}
-    {{- end -}}
+    {{- else if hasPrefix "0.0.0-nightly-" .Chart.AppVersion -}}
+        {{- printf "%s:%s" "quay.io/dynatrace/dynatrace-operator" (.Chart.AppVersion | replace "0.0.0-" "") }}
+	{{- else -}}
+		{{- printf "%s:v%s" "public.ecr.aws/dynatrace/dynatrace-operator" .Chart.AppVersion }}
+	{{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -112,34 +112,4 @@ startupProbe:
 "helm.sh/hook": pre-upgrade
 "helm.sh/hook-weight": "-5"
 "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-{{- end -}}
-
-{{- define "kubernetes.appArmorSecurityContextSupported" -}}
-{{- if semverCompare ">=1.31.0" .Capabilities.KubeVersion.Version  -}}
-    true
-{{- else -}}
-    false
-{{- end -}}
-{{- end -}}
-
-{{- define "kubernetes.defaultAppArmorProfile" -}}
-{{- if eq (include "kubernetes.appArmorSecurityContextSupported" .) "true" -}}
-appArmorProfile:
-  type: RuntimeDefault
-{{- end -}}
-{{- end -}}
-
-{{- define "dynatrace-operator.webhook.replicas" -}}
-  {{- if or (not .Values.webhook.highAvailability) .Values.debug -}}
-    {{- 1 -}}
-  {{- else -}}
-    {{- .Values.webhook.replicas -}}
-  {{- end -}}
-{{- end -}}
-
-{{- define "dynatrace-operator.webhook.topologySpreadConstraints" -}}
-  {{- if .Values.webhook.highAvailability -}}
-topologySpreadConstraints:
-  {{- toYaml .Values.webhook.topologySpreadConstraints | nindent 2 }}
-  {{- end -}}
 {{- end -}}

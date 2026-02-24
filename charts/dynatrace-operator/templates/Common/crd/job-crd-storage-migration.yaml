@@ -28,7 +28,7 @@ spec:
       labels:
         {{- include "dynatrace-operator.crdStorageMigrationLabels" . | nindent 8 }}
       annotations:
-      {{- if and (.Values.operator.apparmor) (eq (include "kubernetes.appArmorSecurityContextSupported" .) "false") }}
+      {{- if (.Values.operator).apparmor}}
         container.apparmor.security.beta.kubernetes.io/crd-storage-migration: runtime/default
       {{- end }}
     spec:
@@ -37,9 +37,6 @@ spec:
       serviceAccountName: dynatrace-crd-storage-migration
       securityContext:
         {{- toYaml .Values.operator.podSecurityContext | nindent 8 }}
-        {{- if .Values.operator.apparmor -}}
-          {{ include "kubernetes.defaultAppArmorProfile" . | nindent 8 }}
-        {{- end -}}
       {{- if .Values.customPullSecret }}
       imagePullSecrets:
         - name: {{ .Values.customPullSecret }}
@@ -55,9 +52,7 @@ spec:
       containers:
         - name: crd-storage-migration
           image: {{ include "dynatrace-operator.image" . }}
-          {{- with .Values.imagePullPolicy }}
-          imagePullPolicy: {{ . }}
-          {{- end }}
+          imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
           args:
             - crd-storage-migration
             - --namespace={{ .Release.Namespace }}

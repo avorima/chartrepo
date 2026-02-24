@@ -37,7 +37,7 @@ spec:
         dynatrace.com/inject: "false"
         kubectl.kubernetes.io/default-container: provisioner
         cluster-autoscaler.kubernetes.io/enable-ds-eviction: "false"
-        {{- if and (or .Values.csidriver.apparmor .Values.apparmor) (ne (include "kubernetes.appArmorSecurityContextSupported" .) "true") }}
+        {{- if and (eq (default false .Values.apparmor) true) (ne (include "dynatrace-operator.platform" .) "openshift") }}
         container.apparmor.security.beta.kubernetes.io/csi-init: runtime/default
         container.apparmor.security.beta.kubernetes.io/server: runtime/default
         container.apparmor.security.beta.kubernetes.io/provisioner: runtime/default
@@ -57,9 +57,7 @@ spec:
       initContainers:
       - name: csi-init
         image: {{ include "dynatrace-operator.image" . }}
-        {{- with .Values.imagePullPolicy }}
-        imagePullPolicy: {{ . }}
-        {{- end }}
+        imagePullPolicy: Always
         args:
         - csi-init
         env:
@@ -83,9 +81,7 @@ spec:
         # - Needs access to a dedicated folder on the node to persist data, needs to read/write to it.
       - name: server
         image: {{ include "dynatrace-operator.image" . }}
-        {{- with .Values.imagePullPolicy }}
-        imagePullPolicy: {{ . }}
-        {{- end }}
+        imagePullPolicy: Always
         {{- if .Values.debug }}
         command:
           - /usr/local/bin/dlv
@@ -152,9 +148,7 @@ spec:
           mountPropagation: Bidirectional
       - name: provisioner
         image: {{ include "dynatrace-operator.image" . }}
-        {{- with .Values.imagePullPolicy }}
-        imagePullPolicy: {{ . }}
-        {{- end }}
+        imagePullPolicy: Always
         {{- if .Values.debug }}
         command:
           - /usr/local/bin/dlv
@@ -233,9 +227,7 @@ spec:
         # - Needs access to the registration socket, needs to read/write to it, needs root permissions to do so.
       - name: registrar
         image: {{ include "dynatrace-operator.image" . }}
-        {{- with .Values.imagePullPolicy }}
-        imagePullPolicy: {{ . }}
-        {{- end }}
+        imagePullPolicy: Always
         env:
         - name: DRIVER_REG_SOCK_PATH
           value: {{ include "dynatrace-operator.CSISocketPath" . }}
@@ -262,9 +254,7 @@ spec:
       {{- if .Values.csidriver.server.livenessProbe.enabled }}
       - name: liveness-probe
         image: {{ include "dynatrace-operator.image" . }}
-        {{- with .Values.imagePullPolicy }}
-        imagePullPolicy: {{ . }}
-        {{- end }}
+        imagePullPolicy: Always
         args:
         - livenessprobe
         - --csi-address=/csi/csi.sock
@@ -287,12 +277,7 @@ spec:
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      {{- if and (or .Values.csidriver.apparmor .Values.apparmor) (eq (include "kubernetes.appArmorSecurityContextSupported" .) "true") }}
-      securityContext:
-        {{- include "kubernetes.defaultAppArmorProfile" . | nindent 8 }}
-      {{- else }}
       securityContext: {}
-      {{- end }}
       serviceAccountName: dynatrace-oneagent-csi-driver
       terminationGracePeriodSeconds: 30
       priorityClassName: {{ include "dynatrace-operator.CSIPriorityClassName" . }}

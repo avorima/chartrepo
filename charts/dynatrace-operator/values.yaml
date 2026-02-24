@@ -17,15 +17,12 @@ platform: ""
 
 #image qualifier; OBSOLETE -> use imageref instead!
 # supply either image or imageref; if both supplied, imageref will be disregarded
-image: quay.io/dynatrace/dynatrace-operator:snapshot-chart-pull-policy
+image: ""
 #image description using tags
 #resulting image will be named <repository>:v<tag>
 imageRef:
   repository: "" #path to repo
   tag: "" #defaults to chart version
-
-# Image pull policy for the dynatrace-operator image.
-imagePullPolicy:
 
 customPullSecret: ""
 installCRD: true
@@ -97,30 +94,7 @@ webhook:
   limits:
     cpu: 300m
     memory: 128Mi
-  highAvailability: true # DEPRECATED, will be removed in future release, only for migration purposes, we will ignore it when it is false, and consider the new values when it is true.
-  replicas: 2 # Will be ignored when `highAvailability` is false, just for migration purposes.
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: "topology.kubernetes.io/zone"
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          internal.dynatrace.com/app: webhook
-          internal.dynatrace.com/component: webhook
-    - maxSkew: 1
-      topologyKey: "kubernetes.io/hostname"
-      whenUnsatisfiable: ScheduleAnyway
-      nodeTaintsPolicy: Honor
-      labelSelector:
-        matchLabels:
-          internal.dynatrace.com/app: webhook
-          internal.dynatrace.com/component: webhook
-  podDisruptionBudget:
-    minAvailable: 1
-    selector:
-      matchLabels:
-        internal.dynatrace.com/app: webhook
-        internal.dynatrace.com/component: webhook
+  highAvailability: true
   validatingWebhook:
     timeoutSeconds: 10
   mutatingWebhook:
@@ -146,7 +120,6 @@ csidriver:
       operator: Exists
   labels: {}
   annotations: {}
-  apparmor: false
   updateStrategy:
     rollingUpdate:
       maxSurge: 0
@@ -154,9 +127,6 @@ csidriver:
     type: RollingUpdate
   csiInit:
     securityContext:
-      capabilities:
-        drop:
-          - ALL
       runAsUser: 0
       privileged: false
       allowPrivilegeEscalation: false
@@ -215,10 +185,6 @@ csidriver:
         memory: 100Mi
   registrar:
     securityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-          - ALL
       runAsUser: 0
       privileged: false
       readOnlyRootFilesystem: true
@@ -234,9 +200,6 @@ csidriver:
         memory: 30Mi
   livenessprobe:
     securityContext:
-      capabilities:
-        drop:
-          - ALL
       runAsUser: 0
       privileged: false
       allowPrivilegeEscalation: false
