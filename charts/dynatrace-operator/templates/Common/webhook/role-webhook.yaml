@@ -20,7 +20,7 @@ metadata:
     {{- include "dynatrace-operator.webhookLabels" . | nindent 4 }}
 rules:
   - apiGroups:
-      - ""
+      - events.k8s.io
     resources:
       - events
     verbs:
@@ -30,7 +30,6 @@ rules:
       - ""
     resources:
       - secrets
-      - pods
       - configmaps
     verbs:
       - get
