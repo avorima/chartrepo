@@ -21,8 +21,8 @@ image: ""
 #image description using tags
 #resulting image will be named <repository>:v<tag>
 imageRef:
-  repository: ghcr.io/dynatrace/operator
-  tag: snapshot-remove-v1beta3
+  repository: "" #path to repo
+  tag: "" #defaults to chart version
   pullPolicy: ""
 
 customPullSecret: ""
