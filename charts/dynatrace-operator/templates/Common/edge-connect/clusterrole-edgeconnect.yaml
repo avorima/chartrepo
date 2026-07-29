@@ -1,4 +1,6 @@
-{{- if and .Values.rbac.edgeConnect.create (eq (include "dynatrace-operator.openshiftOrOlm" .) "true") }}
+{{- if and .Values.rbac.edgeConnect.create (include "dynatrace-operator.openshiftOrOlm" .) }}
+# Copyright Dynatrace LLC
+# SPDX-License-Identifier: Apache-2.0
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

@@ -1,16 +1,5 @@
-# Copyright 2021 Dynatrace LLC
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#     http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright Dynatrace LLC
+# SPDX-License-Identifier: Apache-2.0
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,7 +27,7 @@ spec:
       annotations:
         dynatrace.com/inject: "false"
         kubectl.kubernetes.io/default-container: webhook
-        {{- if and (.Values.webhook.apparmor) (eq (include "kubernetes.appArmorSecurityContextSupported" .) "false") }}
+        {{- if and (.Values.webhook.apparmor) (not (include "kubernetes.appArmorSecurityContextSupported" .)) }}
         container.apparmor.security.beta.kubernetes.io/webhook: runtime/default
         {{- end }}
         {{- if .Values.webhook.annotations}}
@@ -84,6 +73,14 @@ spec:
             - name: PPROF_BIND_ADDRESS
               value: ":6060"
             {{- end }}
+            {{- if .Values.extractCodeModulesImageLinks }}
+            - name: DT_EXTRACT_CODEMODULES_IMAGE_LINKS
+              value: "true"
+            {{- end }}
+            {{- if .Values.operator.kubemonEnableOperand }}
+            - name: KUBEMON_ENABLE_OPERAND
+              value: "true"
+            {{- end }}
             {{ include "dynatrace-operator.modules-json-env" . | nindent 12 }}
           readinessProbe:
             httpGet:
@@ -114,11 +111,12 @@ spec:
               {{- toYaml (.Values.webhook).limits | nindent 14 }}
           volumeMounts:
             - name: certs-dir
-              mountPath: /tmp/k8s-webhook-server/serving-certs/
+              mountPath: /tmp/k8s-webhook-server/serving-certs
           securityContext:
           {{- include "webhook.securityContext" . | nindent 12 }}
       serviceAccountName: dynatrace-webhook
       {{- if (.Values.webhook).hostNetwork }}
+      dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       {{- end }}
       securityContext:

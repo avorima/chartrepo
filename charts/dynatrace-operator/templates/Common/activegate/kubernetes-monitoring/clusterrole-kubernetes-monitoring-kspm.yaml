@@ -1,4 +1,6 @@
 {{- if .Values.rbac.kspm.create}}
+# Copyright Dynatrace LLC
+# SPDX-License-Identifier: Apache-2.0
 {{- include "validation.rbac.kspm" . }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

@@ -1,4 +1,6 @@
 {{- if (and .Values.rbac.extensions.database.create .Values.rbac.extensions.create)}}
+# Copyright Dynatrace LLC
+# SPDX-License-Identifier: Apache-2.0
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -7,7 +9,7 @@ metadata:
   labels:
     {{- include "dynatrace-operator.databaseDatasourceLabels" . | nindent 4 }}
 rules:
-  {{- if (eq (include "dynatrace-operator.openshiftOrOlm" .) "true") }}
+  {{- if (include "dynatrace-operator.openshiftOrOlm" .) }}
   - apiGroups:
       - security.openshift.io
     resourceNames:

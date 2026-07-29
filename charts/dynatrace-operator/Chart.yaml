@@ -1,20 +1,14 @@
 apiVersion: v2
-appVersion: 0.0.0-nightly-2026-04-08
+appVersion: 0.0.0-nightly-2026-07-29
 description: The Dynatrace Operator Helm chart for Kubernetes and OpenShift
 home: https://www.dynatrace.com/
 icon: https://assets.dynatrace.com/global/resources/Signet_Logo_RGB_CP_512x512px.png
 kubeVersion: '>=1.25.0-0'
 maintainers:
-- email: marcell.sevcsik@dynatrace.com
-  name: 0sewa0
-- email: andrii.soldatenko@dynatrace.com
-  name: andriisoldatenko
-- email: christoph.muellner@dynatrace.com
-  name: chrismuellner
-- email: george.balea@dynatrace.com
-  name: geba-dyna
+- email: team-kubernetes-operator@dynatrace.com
+  name: team-kubernetes-operator
 name: dynatrace-operator
 sources:
 - https://github.com/Dynatrace/dynatrace-operator
 type: application
-version: 0.0.0-nightly-2026-04-08
+version: 0.0.0-nightly-2026-07-29

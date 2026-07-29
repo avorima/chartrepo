@@ -1,17 +1,6 @@
-{{ if eq (include "dynatrace-operator.needCSI" .) "true" }}
-# Copyright 2021 Dynatrace LLC
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#     http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+{{ if (include "dynatrace-operator.needCSI" .) }}
+# Copyright Dynatrace LLC
+# SPDX-License-Identifier: Apache-2.0
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -35,9 +24,9 @@ spec:
     metadata:
       annotations:
         dynatrace.com/inject: "false"
-        kubectl.kubernetes.io/default-container: provisioner
+        kubectl.kubernetes.io/default-container: {{ if .Values.csidriver.migrationMode }}server{{ else }}provisioner{{ end }}
         cluster-autoscaler.kubernetes.io/enable-ds-eviction: "false"
-        {{- if and (or .Values.csidriver.apparmor .Values.apparmor) (ne (include "kubernetes.appArmorSecurityContextSupported" .) "true") }}
+        {{- if and (or .Values.csidriver.apparmor .Values.apparmor) (not (include "kubernetes.appArmorSecurityContextSupported" .)) }}
         container.apparmor.security.beta.kubernetes.io/csi-init: runtime/default
         container.apparmor.security.beta.kubernetes.io/server: runtime/default
         container.apparmor.security.beta.kubernetes.io/provisioner: runtime/default
@@ -201,6 +190,10 @@ spec:
           - name: CLEANUP_PERIOD
             value: "{{ .Values.csidriver.cleanupPeriod}}"
           {{- end }}
+          {{- if .Values.extractCodeModulesImageLinks }}
+          - name: DT_EXTRACT_CODEMODULES_IMAGE_LINKS
+            value: "true"
+          {{- end }}
           {{- include "dynatrace-operator.modules-json-env" . | nindent 10 }}
           {{- include "dynatrace-operator.helm-json-env" . | nindent 10 }}
           {{- include "dynatrace-operator.gomemlimit" .Values.csidriver.provisioner.resources | nindent 10 }}
@@ -235,7 +228,6 @@ spec:
           - mountPath: {{ include "dynatrace-operator.CSIMountPointDir" . }}
             name: mountpoint-dir # needed for garbage-collection
             readOnly: true
-
         # Used to make a gRPC request (GetPluginInfo()) to the driver to get driver name and driver contain
         # - Needs access to the csi socket, needs to read/write to it, needs root permissions to do so.
         # Used for registering the driver with kubelet
@@ -296,7 +288,7 @@ spec:
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      {{- if and (or .Values.csidriver.apparmor .Values.apparmor) (eq (include "kubernetes.appArmorSecurityContextSupported" .) "true") }}
+      {{- if and (or .Values.csidriver.apparmor .Values.apparmor) (include "kubernetes.appArmorSecurityContextSupported" .) }}
       securityContext:
         {{- include "kubernetes.defaultAppArmorProfile" . | nindent 8 }}
       {{- else }}
