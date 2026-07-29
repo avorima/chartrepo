@@ -19,5 +19,9 @@ spec:
 {{- with .Values.templates }}
   templates: {{ . | toYaml | nindent 4 }}
 {{- end }}
-  enableIstio: {{ .Values.enableIstio | default false }}
-  skipCertCheck: {{ .Values.skipCertCheck | default false }}
+{{- with .Values.enableIstio }}
+  enableIstio: {{ . }}
+{{- end }}
+{{- with .Values.skipCertCheck }}
+  skipCertCheck: {{ . }}
+{{- end }}
