@@ -1,5 +1,16 @@
-# Copyright Dynatrace LLC
-# SPDX-License-Identifier: Apache-2.0
+# Copyright 2021 Dynatrace LLC
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 # special handling for "openshift" and "gke-autopilot" (deprecated)
 platform: ""
@@ -57,7 +68,6 @@ operator:
   startupProbe: {} # configurable: periodSeconds, timeoutSeconds, failureThreshold
   requeueAfter: "" # requeue period for the controller, defaults to 15m
   clientCacheCleanupInterval: "" # defined in the Golang time.Duration format, like "30m" == 30 minutes. Defaults to 1h
-  kubemonEnableOperand: false # temporary gate; set to true to enable kubemon in dev/test. Remove when kubemon is complete.
 
 webhook:
   hostNetwork: false
@@ -120,11 +130,6 @@ webhook:
   mutatingWebhook:
     failurePolicy: Ignore
     timeoutSeconds: 10
-  certs:
-    rootDuration: "" # CA root certificate validity duration, defaults to 8760h (365 days), min: 168h (7 days), max: 87600h (10 years); must be greater than serverDuration
-    serverDuration: "" # server certificate validity duration, defaults to 168h (7 days), min: 24h, max: 8760h (365 days); must be greater than renewalThreshold
-    renewalThreshold: "" # certificate renewal threshold, defaults to 12h, min: 12h, max: 720h (30 days); must be greater than requeueAfter
-    requeueAfter: "" # requeue interval when certificates are up to date, defaults to 3h, min: 5m, max: 11h; must be less than renewalThreshold
   volumes:
     certsDir:
       sizeLimit: 10Mi

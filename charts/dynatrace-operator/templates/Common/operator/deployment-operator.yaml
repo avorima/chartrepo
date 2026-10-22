@@ -1,5 +1,16 @@
-# Copyright Dynatrace LLC
-# SPDX-License-Identifier: Apache-2.0
+# Copyright 2021 Dynatrace LLC
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -59,7 +70,6 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
-            {{- include "dynatrace-operator.webhookCertsCtrl.envs" . | nindent 12 }}
           resources:
             requests:
               {{- toYaml .Values.operator.requests | nindent 14 }}
@@ -117,10 +127,6 @@ spec:
             - name: DT_CLIENT_CACHE_CLEAN_INTERVAL
               value: "{{ .Values.operator.clientCacheCleanupInterval }}"
             {{- end }}
-            {{- if .Values.operator.kubemonEnableOperand }}
-            - name: KUBEMON_ENABLE_OPERAND
-              value: "true"
-            {{- end }}
             {{- if .Values.enableInsecurePprofEndpoint }}
             - name: PPROF_BIND_ADDRESS
               value: ":6060"
@@ -132,7 +138,6 @@ spec:
             - name: DT_DEFAULT_REQUEUE_AFTER
               value: {{ . | quote }}
             {{- end }}
-            {{- include "dynatrace-operator.webhookCertsCtrl.envs" . | nindent 12 }}
           ports:
             - containerPort: 10080
               name: livez
