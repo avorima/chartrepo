@@ -75,6 +75,24 @@ entries:
     version: 0.1.0
   dynatrace-operator:
   - apiVersion: v2
+    appVersion: 1.10.3
+    created: "2026-10-22T13:36:28.499178111Z"
+    description: The Dynatrace Operator Helm chart for Kubernetes and OpenShift
+    digest: f744b84d67c7a2735fa1871ba69c88e174e248042940f69851e6530babb70a29
+    home: https://www.dynatrace.com/
+    icon: https://assets.dynatrace.com/global/resources/Signet_Logo_RGB_CP_512x512px.png
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - email: team-kubernetes-operator@dynatrace.com
+      name: team-kubernetes-operator
+    name: dynatrace-operator
+    sources:
+    - https://github.com/Dynatrace/dynatrace-operator
+    type: application
+    urls:
+    - https://github.com/avorima/chartrepo/releases/download/dynatrace-operator-1.10.3/dynatrace-operator-1.10.3.tgz
+    version: 1.10.3
+  - apiVersion: v2
     appVersion: 1.10.2
     created: "2026-10-22T13:31:56.050547628Z"
     description: The Dynatrace Operator Helm chart for Kubernetes and OpenShift
@@ -649,4 +667,4 @@ entries:
     urls:
     - https://github.com/avorima/chartrepo/releases/download/hook-demo-0.1.0/hook-demo-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-22T13:31:56.0509765Z"
+generated: "2026-10-22T13:36:28.499414273Z"
